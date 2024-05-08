@@ -1,23 +1,38 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "helloworld-sample" is now active!');
+export async function activate(context: vscode.ExtensionContext) {
+  const globalStateKey = 'open-vscodeserver-initial-settings.hasLoaded'
+  const hasLoaded = context.globalState.get(globalStateKey)
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('extension.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
+  /**
+   * To avoid overwriting the settings each time VS Code is opened, we use
+   * globalState to store a boolean so we can skip the process. Data inside
+   * `context.globalState` persists across VS Code sessions.
+   */
+  if (hasLoaded === true) return
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World!');
-	});
+  /**
+   * This plugin expects to find a `settings.json` file in the
+   * `/vscode-settings` directory. Those values will then programmatically set
+   * on the VS Code configuration.
+   *
+   * open-vscodeserver doesn't store settings in a file, rather, it persists
+   * them in the browser's indexedDB.
+   */
+  const fileUri = vscode.Uri.file('/vscode-settings/settings.json')
+  const fileBytes = await vscode.workspace.fs.readFile(fileUri)
+  const fileContent = fileBytes.toString()
+  const settings: Record<string, any> = JSON.parse(fileContent)
 
-	context.subscriptions.push(disposable);
+  vscode.window.showInformationMessage('Updating initial settings...')
+  Object.entries(settings).forEach(([key, value]) => {
+    vscode.workspace
+      .getConfiguration()
+      .update(key, value, vscode.ConfigurationTarget.Global)
+  })
+
+  context.globalState.update(globalStateKey, true)
+  vscode.window.showInformationMessage('Settings updated!')
 }
+
+export function deactivate() {}
