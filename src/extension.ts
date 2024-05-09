@@ -33,6 +33,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.globalState.update(globalStateKey, true)
   vscode.window.showInformationMessage('Settings updated!')
+  vscode.commands.executeCommand('workbench.action.closeAllEditors')
 }
 
 export function deactivate() {}
