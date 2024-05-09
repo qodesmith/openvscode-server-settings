@@ -2,6 +2,7 @@
   "name": "openvscode-server-settings",
   "displayName": "openvscode-server-settings",
   "description": "Start openvscode-server with initial settings",
+  "icon": "icon.png",
   "version": "1.0.0",
   "publisher": "Qodesmith",
   "repository": "https://github.com/qodesmith/openvscode-server-settings",
